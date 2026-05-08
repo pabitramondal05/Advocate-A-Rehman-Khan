@@ -5,7 +5,6 @@
             offset: 100
         });
 
-        // Typed Text configuration
         let typedInstance = null;
         const typedStrings = {
             en: [
@@ -40,7 +39,55 @@
             });
         }
 
-        // Contact Form Logic (To WhatsApp)
+        function executeNavSearch(event, value) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const mainSearch = document.getElementById('qna-search');
+                if (mainSearch) {
+                    mainSearch.value = value;
+                    filterQnA();
+                    
+                    const blogSection = document.getElementById('blog');
+                    const navHeight = document.querySelector('nav').offsetHeight;
+                    const topPos = blogSection.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                    
+                    window.scrollTo({
+                        top: topPos,
+                        behavior: 'smooth'
+                    });
+
+                    const mobileMenu = document.getElementById('mobile-menu');
+                    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        mobileMenu.classList.remove('flex');
+                    }
+                }
+            }
+        }
+
+        function filterQnA() {
+            const input = document.getElementById('qna-search').value.toLowerCase();
+            const items = document.querySelectorAll('.searchable-item');
+            let visibleCount = 0;
+            
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(input)) {
+                    item.style.display = '';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            const noResultsMsg = document.getElementById('no-search-results');
+            if (visibleCount === 0 && input !== '') {
+                noResultsMsg.classList.remove('hidden');
+            } else {
+                noResultsMsg.classList.add('hidden');
+            }
+        }
+
         function submitForm(e) {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
@@ -54,7 +101,6 @@
             const caseType = document.getElementById('contact-case').value || "Not Specified";
             const desc = document.getElementById('contact-desc').value || "No description provided.";
             
-            // Advocate Rehman Khan's Phone
             const targetPhone = "917439315183"; 
             const message = `*New Consultation Request*\n\n*Name:* ${name}\n*Phone:* ${phone}\n*Case Type:* ${caseType}\n*Description:* ${desc}`;
             
@@ -69,7 +115,6 @@
             }, 1000);
         }
 
-        // Chatbot Widget Logic
         function toggleChatPopup() {
             const popup = document.getElementById('chat-popup');
             const icon = document.getElementById('chat-icon');
@@ -88,7 +133,7 @@
         }
 
         function showTypingIndicator() {
-            if (document.getElementById('typing-indicator-bubble')) return; // Prevent duplicates
+            if (document.getElementById('typing-indicator-bubble')) return;
             const chatContainer = document.getElementById('chat-messages');
             const msgDiv = document.createElement('div');
             msgDiv.id = 'typing-indicator-bubble';
@@ -102,9 +147,6 @@
             const indicator = document.getElementById('typing-indicator-bubble');
             if (indicator) indicator.remove();
         }
-
-        // --- LOCAL DATA CHATBOT INTEGRATION ---
-        // Complete replacement of external API with local JSON knowledge base based entirely on page data.
 
         const localKnowledgeBase = [
             {
@@ -155,7 +197,7 @@
             {
                 category: "experience_profile",
                 keywords: ["experience", "profile", "who", "degree", "qualification", "reviews", "rating", "lawrato", "years"],
-                response: "Advocate A. Rehman Khan holds B.Com (Hons), LL.B, and LL.M degrees. He has 3+ years of intense litigation experience and is a LawRato Top Contributor 2023 with a 4.9/5 rating."
+                response: "Advocate A. Rehman Khan holds B.Com (Hons), LL.B, and LL.M degrees. He has 25 years of intense litigation experience and is a LawRato Top Contributor 2023 with a 4.9/5 rating."
             },
             {
                 category: "youtube",
@@ -184,14 +226,13 @@
             }
         ];
 
-        let isWaitingForResponse = false; // Debounce flag
+        let isWaitingForResponse = false;
         let awaitingWhatsAppPermission = false;
         let lastUserQuery = "";
 
         function getLocalResponse(userText) {
             const lowerInput = userText.toLowerCase();
 
-            // Check if the user is answering a previous prompt to redirect to WhatsApp
             if (awaitingWhatsAppPermission) {
                 if (lowerInput.match(/\b(yes|yep|sure|ok|yeah|y|ha|haan|yes please)\b/)) {
                     awaitingWhatsAppPermission = false;
@@ -209,7 +250,6 @@
                 }
             }
 
-            // Local Matching Algorithm
             let bestMatch = null;
             let maxMatchCount = 0;
 
@@ -230,7 +270,6 @@
                 return bestMatch.response;
             }
 
-            // Fallback if no local data matches
             awaitingWhatsAppPermission = true;
             lastUserQuery = userText; 
             return "I am a local virtual assistant and may not understand complex queries. Would you like me to redirect you to our human legal team on WhatsApp? (Reply Yes or No)";
@@ -243,26 +282,20 @@
             
             if (!userText || isWaitingForResponse) return;
 
-            // Block input to prevent double-sends and ghost typing indicators
             isWaitingForResponse = true;
             inputField.disabled = true;
             submitBtn.disabled = true;
             submitBtn.style.opacity = '0.5';
 
-            // Show user message instantly
             appendMessage('user', userText);
             inputField.value = '';
             
-            // Show typing indicator to simulate processing
             showTypingIndicator();
 
-            // Simulate slight delay before responding
             setTimeout(() => {
                 try {
-                    // Fetch local AI response
                     const botResponseText = getLocalResponse(userText);
                     
-                    // Remove typing indicator and show AI response
                     removeTypingIndicator();
                     appendMessage('bot', botResponseText);
 
@@ -270,14 +303,13 @@
                     removeTypingIndicator();
                     appendMessage('bot', "I am experiencing technical difficulties. Please contact our office directly at 074393 15183 or click the WhatsApp button to connect with our team.");
                 } finally {
-                    // Unlock UI regardless of success or failure
                     isWaitingForResponse = false;
                     inputField.disabled = false;
                     submitBtn.disabled = false;
                     submitBtn.style.opacity = '1';
                     setTimeout(() => inputField.focus(), 10);
                 }
-            }, 800); // 800ms simulated typing delay
+            }, 800);
         }
 
         function handleEnterKeyPress(event) {
@@ -295,7 +327,6 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // Translation functionality
         const langs = ['en', 'bn', 'hi'];
         const cookieMatch = document.cookie.match(/googtrans=\/en\/(en|bn|hi)/);
         let currentLang = cookieMatch ? cookieMatch[1] : 'en';
@@ -309,7 +340,6 @@
         }
 
         function toggleLanguage() {
-            // Cycle between English, Bengali, and Hindi
             langIndex = (langIndex + 1) % langs.length;
             const targetLang = langs[langIndex];
             const translateSelect = document.querySelector('.goog-te-combo');
@@ -321,14 +351,12 @@
                 updateLangButton(currentLang);
                 initTyped(currentLang);
             } else {
-                // Fallback: set Google Translate cookie and reload the page to force translation
                 document.cookie = `googtrans=/en/${targetLang}; path=/`;
                 document.cookie = `googtrans=/en/${targetLang}; domain=.${window.location.hostname}; path=/`;
                 window.location.reload();
             }
         }
 
-        // Modals Logic
         function openTeamModal(id) {
             const modal = document.getElementById('team-modal');
             modal.classList.remove('hidden');
@@ -349,7 +377,6 @@
             }, 300);
         }
 
-        // Article Modal Logic
         function openArticleModal(articleId) {
             const modal = document.getElementById('article-modal');
             const contentDiv = document.getElementById('article-content-' + articleId);
@@ -383,7 +410,6 @@
             }, 300);
         }
 
-        // Youtube Video Modal Logic
         function openVideoModal(videoId) {
             const modal = document.getElementById('video-modal');
             const iframe = document.getElementById('youtube-iframe');
@@ -403,12 +429,55 @@
             setTimeout(() => {
                 modal.classList.remove('flex');
                 modal.classList.add('hidden');
-                iframe.src = ''; // Stop video
+                iframe.src = '';
                 document.body.style.overflow = '';
             }, 300);
         }
 
-        // Slider Logic
+        const testimonialTrack = document.getElementById('testimonials-track');
+        let isAutoScrolling = true;
+        let isDragging = false;
+        let startX, scrollLeftPos;
+
+        if (testimonialTrack) {
+            function autoScrollTestimonials() {
+                if (isAutoScrolling && !isDragging) {
+                    testimonialTrack.scrollLeft += 1;
+                    if (testimonialTrack.scrollLeft >= testimonialTrack.scrollWidth / 2) {
+                        testimonialTrack.scrollLeft = 0;
+                    }
+                }
+                requestAnimationFrame(autoScrollTestimonials);
+            }
+            requestAnimationFrame(autoScrollTestimonials);
+
+            testimonialTrack.addEventListener('touchstart', () => { isAutoScrolling = false; });
+            testimonialTrack.addEventListener('touchend', () => { isAutoScrolling = true; });
+
+            testimonialTrack.addEventListener('mouseenter', () => { isAutoScrolling = false; });
+            testimonialTrack.addEventListener('mouseleave', () => { isAutoScrolling = true; isDragging = false; });
+            
+            testimonialTrack.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                isAutoScrolling = false;
+                startX = e.pageX - testimonialTrack.offsetLeft;
+                scrollLeftPos = testimonialTrack.scrollLeft;
+            });
+            
+            testimonialTrack.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const x = e.pageX - testimonialTrack.offsetLeft;
+                const walk = (x - startX) * 2;
+                testimonialTrack.scrollLeft = scrollLeftPos - walk;
+            });
+            
+            testimonialTrack.addEventListener('mouseup', () => {
+                isDragging = false;
+                isAutoScrolling = true;
+            });
+        }
+
         let currentSlide = 0;
         const totalSlides = 4;
         let slideInterval;
@@ -451,13 +520,36 @@
             slideInterval = setInterval(window.nextSlide, 5000);
         }
 
-        // Event Listeners Registration
+        const heroSlider = document.getElementById('home');
+        if(heroSlider) {
+            let heroStartX = 0;
+            let heroEndX = 0;
+            
+            heroSlider.addEventListener('touchstart', e => {
+                heroStartX = e.changedTouches[0].screenX;
+            }, {passive: true});
+
+            heroSlider.addEventListener('touchend', e => {
+                heroEndX = e.changedTouches[0].screenX;
+                handleHeroSwipe();
+            }, {passive: true});
+
+            function handleHeroSwipe() {
+                const threshold = 50;
+                if (heroEndX < heroStartX - threshold) {
+                    window.nextSlide();
+                }
+                if (heroEndX > heroStartX + threshold) {
+                    window.prevSlide();
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             updateLangButton(currentLang);
             initTyped(currentLang);
             resetSlideInterval();
 
-            // Mobile menu toggling
             const menuBtn = document.getElementById('mobile-menu-btn');
             const mobileMenu = document.getElementById('mobile-menu');
             menuBtn.addEventListener('click', () => {
@@ -477,7 +569,6 @@
                 });
             });
 
-            // FAQs expanding logic
             document.querySelectorAll('.faq-toggle').forEach(toggle => {
                 toggle.addEventListener('click', () => {
                     const content = toggle.nextElementSibling;
